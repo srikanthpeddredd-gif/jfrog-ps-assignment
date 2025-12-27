@@ -10,6 +10,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - name: Show workspace and locate pom.xml
+      run: |
+        echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+        pwd
+        ls -la
+        echo "Top-level tree (depth=3)"
+        find . -maxdepth 3 -type d -print
+        echo "Find pom.xml"
+        find . -name pom.xml -print || true
 
     - name: Set up JDK
       uses: actions/setup-java@v4
