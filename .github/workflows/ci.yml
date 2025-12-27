@@ -45,5 +45,5 @@ jobs:
     - name: Tag and Push Image to Artifactory
       working-directory: spring-petclinic
       run: |
-        docker tag petclinic:1.0 trialny4vkg.jfrog.io/petclinic-docker-local/petclinic:1.1.0
+        docker tag petclinic:1.1.0 trialny4vkg.jfrog.io/petclinic-docker-local/petclinic:1.1.0
         docker push trialny4vkg.jfrog.io/petclinic-docker-local/petclinic:1.1.0
