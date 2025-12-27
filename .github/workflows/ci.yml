@@ -19,7 +19,7 @@ jobs:
 
     - name: Build with Maven
       working-directory: spring-petclinic
-      run: mvn clean package -DskipTests
+      run: mvn -B clean package -DskipTests
 
     - name: Docker Build
       working-directory: spring-petclinic
@@ -28,7 +28,7 @@ jobs:
       env:
         JFROG_USER: ${{ secrets.JFROG_USER }}
         JFROG_TOKEN: ${{ secrets.JFROG_TOKEN }}
-      run: echo "${{ secrets.JFROG_TOKEN }}" | docker login trialny4vkg.jfrog.io -u "${{ secrets.JFROG_USER }}" --password-stdin
+      run: echo "${JFROG_TOKEN}" | docker login trialny4vkg.jfrog.io -u "${JFROG_USER}" --password-stdin
 
     - name: Tag and Push Image to Artifactory
       run: |
