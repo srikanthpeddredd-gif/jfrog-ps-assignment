@@ -13,11 +13,11 @@ jobs:
       IMAGE_TAG: 1.1.0
       BUILD_NAME: petclinic-build
       BUILD_NUMBER: ${{ github.run_number }}
-      JFROG_URL: trialny4vkg.jfrog.io
+      JFROG_URL: https://trialny4vkg.jfrog.io
       DOCKER_REPO: petclinic-docker-local
 
     steps:
-    # 1️⃣ Checkout code
+    # 1️⃣ Checkout source
     - name: Checkout source
       uses: actions/checkout@v4
 
@@ -33,14 +33,14 @@ jobs:
       working-directory: spring-petclinic
       run: mvn -B clean package -DskipTests
 
-    # 4️⃣ Setup JFrog CLI
+    # 4️⃣ Setup JFrog CLI (IMPORTANT: https URL)
     - name: Setup JFrog CLI
       uses: jfrog/setup-jfrog-cli@v4
       env:
         JF_URL: ${{ env.JFROG_URL }}
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
 
-    # 5️⃣ Docker login to Artifactory
+    # 5️⃣ Docker login (for Docker daemon)
     - name: Docker Login to Artifactory
       uses: docker/login-action@v2
       with:
@@ -48,29 +48,34 @@ jobs:
         username: ${{ secrets.JFROG_USER }}
         password: ${{ secrets.JFROG_TOKEN }}
 
-    # 6️⃣ Docker build with JFrog build-info
+    # 6️⃣ JFrog CLI Docker login (THIS FIXES YOUR ERROR)
+    - name: JFrog CLI Docker config
+      run: |
+        jfrog rt docker-login trialny4vkg.jfrog.io
+
+    # 7️⃣ Docker build with JFrog build-info
     - name: Docker Build (with build-info)
       working-directory: spring-petclinic
       run: |
         jfrog docker build \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER} \
-          -t ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
+          -t trialny4vkg.jfrog.io/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
 
-    # 7️⃣ Docker push with build-info
+    # 8️⃣ Docker push with build-info
     - name: Docker Push
       run: |
         jfrog docker push \
-          ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
+          trialny4vkg.jfrog.io/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER}
 
-    # 8️⃣ Publish build-info to Artifactory
+    # 9️⃣ Publish build-info
     - name: Publish Build Info
       run: |
         jfrog rt build-publish ${BUILD_NAME} ${BUILD_NUMBER}
 
-    # 9️⃣ Xray scan (PS gold)
+    # 🔟 Xray Scan
     - name: Xray Scan
       run: |
         jfrog rt build-scan ${BUILD_NAME} ${BUILD_NUMBER}
