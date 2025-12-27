@@ -47,11 +47,12 @@ jobs:
         registry: trialny4vkg.jfrog.io
         username: ${{ secrets.JFROG_USER }}
         password: ${{ secrets.JFROG_TOKEN }}
-
-    # 6️⃣ JFrog CLI Docker login (THIS FIXES YOUR ERROR)
-    - name: JFrog CLI Docker config
+    # 6️⃣ JFrog CLI Docker Login
+    - name: JFrog CLI Docker Login
       run: |
-        jfrog docker login trialny4vkg.jfrog.io
+        echo "${{ secrets.JFROG_TOKEN }}" | jfrog docker login trialny4vkg.jfrog.io \
+          --username "${{ secrets.JFROG_USER }}" \
+          --password-stdin
 
     # 7️⃣ Docker build with JFrog build-info
     - name: Docker Build (with build-info)
