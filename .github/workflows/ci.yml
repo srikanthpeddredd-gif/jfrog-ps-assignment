@@ -70,4 +70,5 @@ jobs:
     # 9️⃣ Xray Scan
     - name: Xray Scan
       run: |
-        jfrog rt build-scan ${BUILD_NAME} ${BUILD_NUMBER}
+        jfrog build-scan ${BUILD_NAME} ${BUILD_NUMBER}
+
