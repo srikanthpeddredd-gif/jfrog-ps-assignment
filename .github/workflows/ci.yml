@@ -13,7 +13,7 @@ jobs:
       IMAGE_TAG: 1.1.0
       BUILD_NAME: petclinic-build
       BUILD_NUMBER: ${{ github.run_number }}
-      JFROG_URL: https://trialny4vkg.jfrog.io
+      JFROG_URL: trialny4vkg.jfrog.io
       DOCKER_REPO: petclinic-docker-local
 
     steps:
