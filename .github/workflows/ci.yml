@@ -51,7 +51,7 @@ jobs:
     # 6️⃣ JFrog CLI Docker login (THIS FIXES YOUR ERROR)
     - name: JFrog CLI Docker config
       run: |
-        jfrog rt docker-login trialny4vkg.jfrog.io
+        jfrog docker login trialny4vkg.jfrog.io
 
     # 7️⃣ Docker build with JFrog build-info
     - name: Docker Build (with build-info)
