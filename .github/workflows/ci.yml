@@ -13,11 +13,11 @@ jobs:
       IMAGE_TAG: 1.1.0
       BUILD_NAME: petclinic-build
       BUILD_NUMBER: ${{ github.run_number }}
-      JFROG_URL: https://trialny4vkg.jfrog.io
+      JFROG_URL: trialny4vkg.jfrog.io
       DOCKER_REPO: petclinic-docker-local
 
     steps:
-    # 1️⃣ Checkout source
+    # 1️⃣ Checkout source code
     - name: Checkout source
       uses: actions/checkout@v4
 
@@ -28,55 +28,49 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    # 3️⃣ Build Java app
+    # 3️⃣ Build Java application
     - name: Build with Maven
       working-directory: spring-petclinic
       run: mvn -B clean package -DskipTests
 
-    # 4️⃣ Setup JFrog CLI (IMPORTANT: https URL)
+    # 4️⃣ Setup JFrog CLI
     - name: Setup JFrog CLI
       uses: jfrog/setup-jfrog-cli@v4
       env:
-        JF_URL: ${{ env.JFROG_URL }}
+        JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
 
-    # 5️⃣ Docker login (for Docker daemon)
+    # 5️⃣ Docker login to Artifactory (ONLY ONCE)
     - name: Docker Login to Artifactory
       uses: docker/login-action@v2
       with:
         registry: trialny4vkg.jfrog.io
         username: ${{ secrets.JFROG_USER }}
         password: ${{ secrets.JFROG_TOKEN }}
-    # 6️⃣ JFrog CLI Docker Login
-    - name: JFrog CLI Docker Login
-      run: |
-        echo "${{ secrets.JFROG_TOKEN }}" | jfrog docker login trialny4vkg.jfrog.io \
-          --username "${{ secrets.JFROG_USER }}" \
-          --password-stdin
 
-    # 7️⃣ Docker build with JFrog build-info
-    - name: Docker Build (with build-info)
+    # 6️⃣ Docker build with JFrog build-info
+    - name: Docker Build
       working-directory: spring-petclinic
       run: |
         jfrog docker build \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER} \
-          -t trialny4vkg.jfrog.io/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
+          -t ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
 
-    # 8️⃣ Docker push with build-info
+    # 7️⃣ Docker push with build-info
     - name: Docker Push
       run: |
         jfrog docker push \
-          trialny4vkg.jfrog.io/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
+          ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER}
 
-    # 9️⃣ Publish build-info
+    # 8️⃣ Publish build-info to Artifactory
     - name: Publish Build Info
       run: |
         jfrog rt build-publish ${BUILD_NAME} ${BUILD_NUMBER}
 
-    # 🔟 Xray Scan
+    # 9️⃣ Xray Scan (if enabled in trial)
     - name: Xray Scan
       run: |
         jfrog rt build-scan ${BUILD_NAME} ${BUILD_NUMBER}
