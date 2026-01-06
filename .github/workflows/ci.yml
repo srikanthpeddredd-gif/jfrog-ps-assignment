@@ -58,7 +58,7 @@ jobs:
           -t ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
     - name: Docker Push
       run: |
-        jfrog docker push \
+        docker push \
           ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
           --build-name ${BUILD_NAME} \
           --build-number ${BUILD_NUMBER}
