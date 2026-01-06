@@ -57,16 +57,12 @@ jobs:
           --build-number=${BUILD_NUMBER} \
           -t ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
     - name: Docker Push
-      run: |
-        docker push \
-          ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
-          --build-name ${BUILD_NAME} \
-          --build-number ${BUILD_NUMBER}
-    # 8️⃣ Publish build-info
+      run: docker push ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+    # 7 Publish build-info
     - name: Publish Build Info
       run: |
         jfrog rt build-publish ${BUILD_NAME} ${BUILD_NUMBER}
-    # 9️⃣ Xray Scan
+    # 8 Xray Scan
     - name: Xray Scan
       run: |
         jfrog build-scan ${BUILD_NAME} ${BUILD_NUMBER}
