@@ -15,7 +15,7 @@ jobs:
       BUILD_NUMBER: ${{ github.run_number }}
       JFROG_URL: trialny4vkg.jfrog.io
       DOCKER_REPO: petclinic-docker-local
-
+      MAVEN_REPO: petclinic-maven-local
     steps:
     #  Checkout source
     - name: Checkout source
@@ -33,20 +33,20 @@ jobs:
       env:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
-    - name: Configure JFrog Maven
+    - name: Configure Maven with Artifactory
       run: |
         jfrog mvn-config \
           --server-id-resolve=artifactory \
           --server-id-deploy=artifactory \
-          --repo-resolve-releases=petclinic-maven-local \
-          --repo-resolve-snapshots=petclinic-maven-local \
-          --repo-deploy-releases=petclinic-maven-local \
-          --repo-deploy-snapshots=petclinic-maven-local
+          --repo-resolve-releases=${MAVEN_REPO} \
+          --repo-resolve-snapshots=${MAVEN_REPO} \
+          --repo-deploy-releases=${MAVEN_REPO} \
+          --repo-deploy-snapshots=${MAVEN_REPO}
 
     - name: Maven Build with JFrog
       working-directory: spring-petclinic
       run: |
-        jfrog rt mvn clean package -DskipTests \
+        jfrog mvn clean package -DskipTests \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER}
 
