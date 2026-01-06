@@ -33,42 +33,36 @@ jobs:
       working-directory: spring-petclinic
       run: mvn -B clean package -DskipTests
 
-    # 4️⃣ Setup JFrog CLI
+    # 4️⃣ Setup JFrog CLI (AUTHENTICATION happens here)
     - name: Setup JFrog CLI
       uses: jfrog/setup-jfrog-cli@v4
       env:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
 
-    # 5️⃣ Docker login (ONLY once)
-    - name: Docker Login to Artifactory
-      uses: docker/login-action@v2
-      with:
-        registry: trialny4vkg.jfrog.io
-        username: ${{ secrets.JFROG_USER }}
-        password: ${{ secrets.JFROG_TOKEN }}
-
-    # 6️⃣ Docker build with JFrog build-info
+    # 5️⃣ Docker Build (JFrog-managed)
     - name: Docker Build
       working-directory: spring-petclinic
       run: |
         jfrog docker build \
-          --build-name=${BUILD_NAME} \
-          --build-number=${BUILD_NUMBER} \
-          -t ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
+          -t ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
+          --build-name ${BUILD_NAME} \
+          --build-number ${BUILD_NUMBER} .
 
-    # 7️⃣ Docker push (plain docker – no JFrog login issues)
+    # 6️⃣ Docker Push (JFrog-managed)
     - name: Docker Push
       run: |
-        docker push ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+        jfrog docker push \
+          ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
+          --build-name ${BUILD_NAME} \
+          --build-number ${BUILD_NUMBER}
 
-    # 8️⃣ Publish build-info
+    # 7️⃣ Publish Build Info
     - name: Publish Build Info
       run: |
         jfrog rt build-publish ${BUILD_NAME} ${BUILD_NUMBER}
 
-    # 9️⃣ Xray Scan
+    # 8️⃣ Xray Build Scan
     - name: Xray Scan
       run: |
         jfrog build-scan ${BUILD_NAME} ${BUILD_NUMBER}
-
