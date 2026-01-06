@@ -27,11 +27,21 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+    - name: Configure JFrog Maven
+      run: |
+        jfrog rt mvn-config \
+          --server-id-resolve=artifactory \
+          --server-id-deploy=artifactory \
+          --repo-resolve-releases=maven-central \
+          --repo-resolve-snapshots=maven-central
 
-    # 3️⃣ Build Java app
-    - name: Build with Maven
+    - name: Maven Build with JFrog
       working-directory: spring-petclinic
-      run: mvn -B clean package -DskipTests
+      run: |
+        jfrog rt mvn clean package \
+          --build-name=${BUILD_NAME} \
+          --build-number=${BUILD_NUMBER} \
+          -DskipTests
 
     # 4️⃣ Setup JFrog CLI
     - name: Setup JFrog CLI
