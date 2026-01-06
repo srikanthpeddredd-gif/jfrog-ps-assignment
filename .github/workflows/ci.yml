@@ -35,11 +35,13 @@ jobs:
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
     - name: Configure JFrog Maven
       run: |
-        jfrog rt mvn-config \
+        jfrog mvn-config \
           --server-id-resolve=artifactory \
           --server-id-deploy=artifactory \
-          --repo-resolve-releases=maven-central \
-          --repo-resolve-snapshots=maven-central
+          --repo-resolve-releases=petclinic-maven-local \
+          --repo-resolve-snapshots=petclinic-maven-local \
+          --repo-deploy-releases=petclinic-maven-local \
+          --repo-deploy-snapshots=petclinic-maven-local
 
     - name: Maven Build with JFrog
       working-directory: spring-petclinic
