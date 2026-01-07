@@ -33,17 +33,17 @@ jobs:
       env:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
-    - name: Configure JFrog Server
-      run: |
-        jfrog config add artifactory \
-          --url=https://trialny4vkg.jfrog.io \
-          --access-token=${{ secrets.JFROG_TOKEN }} \
-          --interactive=false
+    # - name: Configure JFrog Server
+    #   run: |
+    #     jfrog config add artifactory \
+    #       --url=https://trialny4vkg.jfrog.io \
+    #       --access-token=${{ secrets.JFROG_TOKEN }} \
+    #       --interactive=false
     - name: Configure Maven for Artifactory
       run: |
         jfrog mvn-config \
-          --server-id-resolve=artifactory \
-          --server-id-deploy=artifactory \
+          --server-id-resolve=setup-jfrog-cli-server \
+          --server-id-deploy=setup-jfrog-cli-server \
           --repo-resolve-releases=maven-virtual \
           --repo-resolve-snapshots=maven-virtual \
           --repo-deploy-releases=petclinic-maven-local \
