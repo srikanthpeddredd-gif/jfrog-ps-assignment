@@ -28,17 +28,15 @@ jobs:
       env:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
-    - name: Configure Maven for Artifactory
+    - name: Configure Maven (GLOBAL)
       run: |
-        jfrog mvn-config --global \
+        jfrog mvnc --global \
           --server-id-resolve=setup-jfrog-cli-server \
           --server-id-deploy=setup-jfrog-cli-server \
           --repo-resolve-releases=maven-virtual \
           --repo-resolve-snapshots=maven-virtual \
           --repo-deploy-releases=petclinic-maven-local \
           --repo-deploy-snapshots=petclinic-maven-local
-
-
     # Debug – verify settings.xml is correctly injected
     - name: Verify Maven Settings
       run: cat ~/.m2/settings.xml
