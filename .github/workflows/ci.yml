@@ -13,11 +13,12 @@ jobs:
       IMAGE_TAG: 1.1.0
       BUILD_NAME: petclinic-build
       BUILD_NUMBER: ${{ github.run_number }}
+      # Host-only for Docker login
+      JFROG_URL: trialny4vkg.jfrog.io
+      # Full URL (include scheme) for JFrog CLI config and mvn-config
       JF_URL: https://trialny4vkg.jfrog.io
-      JF_DOCKER_URL: trialny4vkg.jfrog.io
       DOCKER_REPO: petclinic-docker-local
-      # Set to see raw communication if errors persist
-      JFROG_CLI_LOG_LEVEL: INFO 
+      JFROG_CLI_LOG_LEVEL: DEBUG
 
     steps:
     - name: Checkout source
@@ -32,52 +33,74 @@ jobs:
     - name: Setup JFrog CLI
       uses: jfrog/setup-jfrog-cli@v4
       env:
-        JF_URL: ${{ env.JF_URL }}
+        JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
 
-    - name: Configure Maven with Artifactory
+    - name: Configure Maven with JFrog Artifactory (debug)
       run: |
-        jf mvn-config \
-          --repo-resolve-releases maven-virtual \
-          --repo-resolve-snapshots maven-virtual \
-          --repo-deploy-releases petclinic-maven-local \
-          --repo-deploy-snapshots petclinic-maven-local
-
-    - name: Maven Build with JFrog
+        set -euxo pipefail
+        mkdir -p jfrog-maven
+        jfrog --version || true
+        jfrog config show setup-jfrog-cli-server || true
+        jfrog config add setup-jfrog-cli-server \
+          --url=$JF_URL \
+          --user=${{ secrets.JFROG_USER }} \
+          --access-token=${{ secrets.JFROG_TOKEN }} \
+          --interactive=false \
+          --overwrite=true
+        echo "=== jfrog config list ==="
+        jfrog config show setup-jfrog-cli-server || true
+        jfrog mvn-config \
+          --server-id-resolve=setup-jfrog-cli-server \
+          --server-id-deploy=setup-jfrog-cli-server \
+          --repo-resolve-releases=maven-virtual \
+          --repo-resolve-snapshots=maven-virtual \
+          --repo-deploy-releases=petclinic-maven-local \
+          --repo-deploy-snapshots=petclinic-maven-local || true
+        echo "=== mvn-config result, listing ~/.m2 ==="
+        ls -la ~/.m2 || true
+        echo "=== generated settings.xml ==="
+        cat ~/.m2/settings.xml || true
+        cp ~/.m2/settings.xml jfrog-maven/settings.xml || true
+    - name: Verify Maven Config
+      run: |
+        echo "===== settings.xml ====="
+        cat jfrog-maven/settings.xml || true
+    - name: Maven Build with JFrog (debug extractor)
       working-directory: spring-petclinic
       run: |
-        jf mvn clean package -DskipTests \
+        set -euxo pipefail
+        jfrog rt mvn -X clean package -DskipTests \
+          --settings ../jfrog-maven/settings.xml \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER}
-
-    - name: Docker Login
-      uses: docker/login-action@v3
+    - name: Docker Login to Artifactory
+      uses: docker/login-action@v2
       with:
-        registry: ${{ env.JF_DOCKER_URL }}
+        registry: ${{ env.JFROG_URL }}
         username: ${{ secrets.JFROG_USER }}
         password: ${{ secrets.JFROG_TOKEN }}
 
-    - name: Docker Build & Push
+    - name: Docker Build
       working-directory: spring-petclinic
       run: |
-        jf docker build \
+        jfrog docker build \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER} \
-          -t ${JF_DOCKER_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
-        jf docker push ${JF_DOCKER_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} \
-          --build-name=${BUILD_NAME} \
-          --build-number=${BUILD_NUMBER}
+          -t ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} .
+    - name: Docker Push
+      run: docker push ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
 
     - name: Publish Build Info
       run: |
-        jf rt build-collect-env ${BUILD_NAME} ${BUILD_NUMBER}
-        jf rt build-publish ${BUILD_NAME} ${BUILD_NUMBER}
-
-    - name: Build Scan (Mandatory for Build Visibility)
+        jfrog rt build-publish ${BUILD_NAME} ${BUILD_NUMBER}
+    - name: Inspect published build-info
       run: |
-        jf build-scan ${BUILD_NAME} ${BUILD_NUMBER} --vuln --format json
-
-    - name: Direct Docker Image Scan (Optional backup)
-      # This scans the local image directly and often provides more immediate results
+        echo "=== Published build-info ==="
+        jfrog rt curl -X GET /api/build/${BUILD_NAME}/${BUILD_NUMBER} || true
+    - name: Xray Scan
       run: |
-        jf docker scan ${JF_DOCKER_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} --vuln
+        jfrog build-scan ${BUILD_NAME} ${BUILD_NUMBER} --vuln --format json
+    # - name: Jfrog docker Scan
+    #   run: |
+    #     jfrog docker scan ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
