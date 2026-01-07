@@ -100,7 +100,11 @@ jobs:
         jfrog rt curl -X GET /api/build/${BUILD_NAME}/${BUILD_NUMBER} || true
     - name: Xray Scan
       run: |
-        jfrog xr scan --build=${BUILD_NAME} --build-number=${BUILD_NUMBER} --vuln --format json
+        echo "=== Starting Xray Build Scan ==="
+        jfrog build-scan ${BUILD_NAME} ${BUILD_NUMBER} --vuln
+        
+        echo "=== Getting JSON results ==="
+        jfrog build-scan ${BUILD_NAME} ${BUILD_NUMBER} --vuln --format json
 
     # - name: Jfrog docker Scan
     #   run: |
