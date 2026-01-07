@@ -35,9 +35,10 @@ jobs:
     - name: Configure Maven with JFrog Artifactory
       run: |
         mkdir -p jfrog-maven
-        # Add or overwrite Artifactory server for JFrog CLI
+        # Add or overwrite Artifactory server for JFrog CLI (provide username for basic auth)
         jfrog config add setup-jfrog-cli-server \
           --url=$JFROG_URL \
+          --user=${{ secrets.JFROG_USER }} \
           --access-token=${{ secrets.JFROG_TOKEN }} \
           --interactive=false \
           --overwrite=true
