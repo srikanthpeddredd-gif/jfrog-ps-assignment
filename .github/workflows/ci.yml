@@ -34,11 +34,11 @@ jobs:
 
     - name: Configure JFrog CLI Server
       run: |
-        # Add Artifactory server for CLI
         jfrog config add setup-jfrog-cli-server \
           --url=$JFROG_URL \
           --access-token=${{ secrets.JFROG_TOKEN }} \
-          --interactive=false
+          --interactive=false \
+          --overwrite=true
 
     - name: Configure Maven via JFrog
       run: |
