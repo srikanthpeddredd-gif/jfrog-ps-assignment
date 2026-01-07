@@ -18,6 +18,7 @@ jobs:
       # Full URL (include scheme) for JFrog CLI config and mvn-config
       JF_URL: https://trialny4vkg.jfrog.io
       DOCKER_REPO: petclinic-docker-local
+      JFROG_CLI_LOG_LEVEL: DEBUG
 
     steps:
     - name: Checkout source
@@ -35,9 +36,13 @@ jobs:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
 
-    - name: Configure Maven with JFrog Artifactory
+    - name: Configure Maven with JFrog Artifactory (debug)
       run: |
+        set -euxo pipefail
         mkdir -p jfrog-maven
+        jfrog --version || true
+        # show existing config (if any)
+        jfrog config show setup-jfrog-cli-server --details || true
         # Add or overwrite Artifactory server for JFrog CLI (provide username for basic auth)
         jfrog config add setup-jfrog-cli-server \
           --url=$JF_URL \
@@ -45,26 +50,33 @@ jobs:
           --access-token=${{ secrets.JFROG_TOKEN }} \
           --interactive=false \
           --overwrite=true
-        # Generate Maven settings.xml with Artifactory repos
+        echo "=== jfrog config list ==="
+        jfrog config show setup-jfrog-cli-server --details
+        # Generate Maven settings.xml with Artifactory repos (log output)
         jfrog mvn-config \
           --server-id-resolve=setup-jfrog-cli-server \
           --server-id-deploy=setup-jfrog-cli-server \
           --repo-resolve-releases=maven-virtual \
           --repo-resolve-snapshots=maven-virtual \
           --repo-deploy-releases=petclinic-maven-local \
-          --repo-deploy-snapshots=petclinic-maven-local
+          --repo-deploy-snapshots=petclinic-maven-local || true
+        echo "=== mvn-config result, listing ~/.m2 ==="
+        ls -la ~/.m2 || true
+        echo "=== generated settings.xml ==="
+        cat ~/.m2/settings.xml || true
         # Copy generated settings.xml to custom folder
-        cp ~/.m2/settings.xml jfrog-maven/settings.xml
+        cp ~/.m2/settings.xml jfrog-maven/settings.xml || true
 
     - name: Verify Maven Config
       run: |
         echo "===== settings.xml ====="
-        cat jfrog-maven/settings.xml
+        cat jfrog-maven/settings.xml || true
 
-    - name: Maven Build with JFrog
+    - name: Maven Build with JFrog (debug extractor)
       working-directory: spring-petclinic
       run: |
-        jfrog mvn clean package -DskipTests \
+        set -euxo pipefail
+        jfrog mvn -X clean package -DskipTests \
           --settings ../jfrog-maven/settings.xml \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER}
