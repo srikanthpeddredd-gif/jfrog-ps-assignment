@@ -39,16 +39,16 @@ jobs:
           --url=https://trialny4vkg.jfrog.io \
           --access-token=${{ secrets.JFROG_TOKEN }} \
           --interactive=false
-    - name: Configure Maven with Artifactory
+    - name: Configure Maven for Artifactory
       run: |
         jfrog mvn-config \
           --server-id-resolve=artifactory \
           --server-id-deploy=artifactory \
-          --repo-resolve-releases=${MAVEN_REPO} \
-          --repo-resolve-snapshots=${MAVEN_REPO} \
-          --repo-deploy-releases=${MAVEN_REPO} \
-          --repo-deploy-snapshots=${MAVEN_REPO}
-
+          --repo-resolve-releases=maven-virtual \
+          --repo-resolve-snapshots=maven-virtual \
+          --repo-deploy-releases=petclinic-maven-local \
+          --repo-deploy-snapshots=petclinic-maven-local
+          
     - name: Maven Build with JFrog
       working-directory: spring-petclinic
       run: |
