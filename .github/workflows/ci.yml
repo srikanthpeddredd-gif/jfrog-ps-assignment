@@ -30,13 +30,14 @@ jobs:
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
     - name: Configure Maven for Artifactory
       run: |
-        jfrog mvn-config \
+        jfrog mvn-config --global \
           --server-id-resolve=setup-jfrog-cli-server \
           --server-id-deploy=setup-jfrog-cli-server \
           --repo-resolve-releases=maven-virtual \
           --repo-resolve-snapshots=maven-virtual \
           --repo-deploy-releases=petclinic-maven-local \
           --repo-deploy-snapshots=petclinic-maven-local
+
 
     # Debug – verify settings.xml is correctly injected
     - name: Verify Maven Settings
