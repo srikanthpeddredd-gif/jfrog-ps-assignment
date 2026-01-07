@@ -48,6 +48,10 @@ jobs:
           --repo-resolve-snapshots=maven-virtual \
           --repo-deploy-releases=petclinic-maven-local \
           --repo-deploy-snapshots=petclinic-maven-local
+    - name: Debug JFrog Config
+      run: |
+        jfrog config show
+        cat ~/.m2/settings.xml
 
     - name: Maven Build with JFrog
       working-directory: spring-petclinic
@@ -55,11 +59,6 @@ jobs:
         jfrog mvn clean package -DskipTests \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER}
-    - name: Debug JFrog Config
-      run: |
-        jfrog config show
-        cat ~/.m2/settings.xml
-
     # Docker login (ONLY once)
     - name: Docker Login to Artifactory
       uses: docker/login-action@v2
