@@ -112,9 +112,6 @@ jobs:
 
     - name: Docker Image Scan
       run: |
-        echo "=== Scanning Docker Image ==="
-        jfrog docker scan ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} --vuln
-        
         echo "=== Docker Image Scan JSON ==="
         jfrog docker scan ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG} --vuln --format json
 
