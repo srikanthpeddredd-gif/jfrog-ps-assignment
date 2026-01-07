@@ -23,15 +23,16 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        settings-path: ''
     - name: Setup JFrog CLI
       uses: jfrog/setup-jfrog-cli@v4
       env:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
-    - name: Configure Maven (GLOBAL)
+    - name: Configure Maven via JFrog (custom settings)
       run: |
-        jfrog mvnc --global \
+        mkdir -p jfrog-maven
+        jfrog mvnc \
+          --maven-settings-path=jfrog-maven/settings.xml \
           --server-id-resolve=setup-jfrog-cli-server \
           --server-id-deploy=setup-jfrog-cli-server \
           --repo-resolve-releases=maven-virtual \
@@ -41,11 +42,12 @@ jobs:
     - name: Verify Maven Config
       run: |
         echo "===== settings.xml ====="
-        cat ~/.m2/settings.xml
+        cat jfrog-maven/settings.xml
     - name: Maven Build with JFrog
       working-directory: spring-petclinic
       run: |
         jfrog mvn clean package -DskipTests \
+          --settings ../jfrog-maven/settings.xml \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER}
     - name: Docker Login to Artifactory
