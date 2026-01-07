@@ -42,7 +42,7 @@ jobs:
         mkdir -p jfrog-maven
         jfrog --version || true
         # show existing config (if any)
-        jfrog config show setup-jfrog-cli-server --details || true
+        jfrog config show setup-jfrog-cli-server || true
         # Add or overwrite Artifactory server for JFrog CLI (provide username for basic auth)
         jfrog config add setup-jfrog-cli-server \
           --url=$JF_URL \
@@ -51,7 +51,7 @@ jobs:
           --interactive=false \
           --overwrite=true
         echo "=== jfrog config list ==="
-        jfrog config show setup-jfrog-cli-server --details
+        jfrog config show setup-jfrog-cli-server || true
         # Generate Maven settings.xml with Artifactory repos (log output)
         jfrog mvn-config \
           --server-id-resolve=setup-jfrog-cli-server \
