@@ -104,9 +104,9 @@ jobs:
         echo "=== Published build-info ==="
         jfrog rt curl -X GET /api/build/${BUILD_NAME}/${BUILD_NUMBER} || true
 
-    # - name: Xray Scan
-    #   run: |
-    #     jfrog build-scan ${BUILD_NAME} ${BUILD_NUMBER}
-    - name: Jfrog docker Scan
+    - name: Xray Scan
       run: |
-        jfrog docker scan ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
+        jfrog build-scan ${BUILD_NAME} ${BUILD_NUMBER} --vuln
+    # - name: Jfrog docker Scan
+    #   run: |
+    #     jfrog docker scan ${JFROG_URL}/${DOCKER_REPO}/${IMAGE_NAME}:${IMAGE_TAG}
