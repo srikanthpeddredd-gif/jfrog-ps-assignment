@@ -23,6 +23,7 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
+        settings-path: ''
     - name: Setup JFrog CLI
       uses: jfrog/setup-jfrog-cli@v4
       env:
@@ -37,10 +38,10 @@ jobs:
           --repo-resolve-snapshots=maven-virtual \
           --repo-deploy-releases=petclinic-maven-local \
           --repo-deploy-snapshots=petclinic-maven-local
-    # Debug – verify settings.xml is correctly injected
-    - name: Verify Maven Settings
-      run: cat ~/.m2/settings.xml
-
+    - name: Verify Maven Config
+      run: |
+        echo "===== settings.xml ====="
+        cat ~/.m2/settings.xml
     - name: Maven Build with JFrog
       working-directory: spring-petclinic
       run: |
