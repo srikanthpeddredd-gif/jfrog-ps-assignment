@@ -70,10 +70,14 @@ jobs:
       working-directory: spring-petclinic
       run: |
         set -euxo pipefail
+        # Enable build info collection for dependencies
+        export JFROG_CLI_BUILD_NAME=${BUILD_NAME}
+        export JFROG_CLI_BUILD_NUMBER=${BUILD_NUMBER}
         jfrog rt mvn -X clean package -DskipTests \
           --settings ../jfrog-maven/settings.xml \
           --build-name=${BUILD_NAME} \
-          --build-number=${BUILD_NUMBER}
+          --build-number=${BUILD_NUMBER} \
+          --detailed-summary
     - name: Docker Login to Artifactory
       uses: docker/login-action@v2
       with:
