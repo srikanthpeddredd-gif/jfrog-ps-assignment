@@ -33,6 +33,12 @@ jobs:
       env:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
+    - name: Configure JFrog Server
+      run: |
+        jfrog config add artifactory \
+          --url=https://trialny4vkg.jfrog.io \
+          --access-token=${{ secrets.JFROG_TOKEN }} \
+          --interactive=false
     - name: Configure Maven with Artifactory
       run: |
         jfrog mvn-config \
