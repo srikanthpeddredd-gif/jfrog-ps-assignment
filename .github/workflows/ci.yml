@@ -32,17 +32,15 @@ jobs:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
 
-    - name: Configure JFrog CLI Server
+    - name: Configure Maven with JFrog Artifactory
       run: |
+        mkdir -p jfrog-maven
+        # Add or overwrite Artifactory server for JFrog CLI
         jfrog config add setup-jfrog-cli-server \
           --url=$JFROG_URL \
           --access-token=${{ secrets.JFROG_TOKEN }} \
           --interactive=false \
           --overwrite=true
-
-    - name: Configure Maven via JFrog
-      run: |
-        mkdir -p jfrog-maven
         # Generate Maven settings.xml with Artifactory repos
         jfrog mvn-config \
           --server-id-resolve=setup-jfrog-cli-server \
