@@ -13,7 +13,10 @@ jobs:
       IMAGE_TAG: 1.1.0
       BUILD_NAME: petclinic-build
       BUILD_NUMBER: ${{ github.run_number }}
+      # Host-only for Docker login
       JFROG_URL: trialny4vkg.jfrog.io
+      # Full URL (include scheme) for JFrog CLI config and mvn-config
+      JF_URL: https://trialny4vkg.jfrog.io
       DOCKER_REPO: petclinic-docker-local
 
     steps:
@@ -37,7 +40,7 @@ jobs:
         mkdir -p jfrog-maven
         # Add or overwrite Artifactory server for JFrog CLI (provide username for basic auth)
         jfrog config add setup-jfrog-cli-server \
-          --url=$JFROG_URL \
+          --url=$JF_URL \
           --user=${{ secrets.JFROG_USER }} \
           --access-token=${{ secrets.JFROG_TOKEN }} \
           --interactive=false \
