@@ -15,30 +15,36 @@ jobs:
       BUILD_NUMBER: ${{ github.run_number }}
       JFROG_URL: trialny4vkg.jfrog.io
       DOCKER_REPO: petclinic-docker-local
+
     steps:
     - name: Checkout source
       uses: actions/checkout@v4
+
     - name: Set up JDK 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
+
     - name: Setup JFrog CLI
       uses: jfrog/setup-jfrog-cli@v4
       env:
         JF_URL: https://trialny4vkg.jfrog.io
         JF_ACCESS_TOKEN: ${{ secrets.JFROG_TOKEN }}
-    - name: Configure Maven via JFrog (custom settings)
+
+    - name: Configure Maven via JFrog
       run: |
         mkdir -p jfrog-maven
-        jfrog mvnc \
-          --maven-settings-path=jfrog-maven/settings.xml \
+        # Generate Maven config in default location (~/.m2/settings.xml)
+        jfrog mvn-config \
           --server-id-resolve=setup-jfrog-cli-server \
           --server-id-deploy=setup-jfrog-cli-server \
           --repo-resolve-releases=maven-virtual \
           --repo-resolve-snapshots=maven-virtual \
           --repo-deploy-releases=petclinic-maven-local \
           --repo-deploy-snapshots=petclinic-maven-local
+        # Copy settings.xml to custom folder
+        cp ~/.m2/settings.xml jfrog-maven/settings.xml
     - name: Verify Maven Config
       run: |
         echo "===== settings.xml ====="
