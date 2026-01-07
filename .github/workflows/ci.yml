@@ -41,9 +41,7 @@ jobs:
         set -euxo pipefail
         mkdir -p jfrog-maven
         jfrog --version || true
-        # show existing config (if any)
         jfrog config show setup-jfrog-cli-server || true
-        # Add or overwrite Artifactory server for JFrog CLI (provide username for basic auth)
         jfrog config add setup-jfrog-cli-server \
           --url=$JF_URL \
           --user=${{ secrets.JFROG_USER }} \
@@ -52,7 +50,6 @@ jobs:
           --overwrite=true
         echo "=== jfrog config list ==="
         jfrog config show setup-jfrog-cli-server || true
-        # Generate Maven settings.xml with Artifactory repos (log output)
         jfrog mvn-config \
           --server-id-resolve=setup-jfrog-cli-server \
           --server-id-deploy=setup-jfrog-cli-server \
@@ -64,7 +61,6 @@ jobs:
         ls -la ~/.m2 || true
         echo "=== generated settings.xml ==="
         cat ~/.m2/settings.xml || true
-        # Copy generated settings.xml to custom folder
         cp ~/.m2/settings.xml jfrog-maven/settings.xml || true
 
     - name: Verify Maven Config
@@ -76,7 +72,7 @@ jobs:
       working-directory: spring-petclinic
       run: |
         set -euxo pipefail
-        jfrog mvn -X clean package -DskipTests \
+        jfrog rt mvn -X clean package -DskipTests \
           --settings ../jfrog-maven/settings.xml \
           --build-name=${BUILD_NAME} \
           --build-number=${BUILD_NUMBER}
@@ -102,6 +98,11 @@ jobs:
     - name: Publish Build Info
       run: |
         jfrog rt build-publish ${BUILD_NAME} ${BUILD_NUMBER}
+
+    - name: Inspect published build-info
+      run: |
+        echo "=== Published build-info ==="
+        jfrog rt curl -X GET /api/build/${BUILD_NAME}/${BUILD_NUMBER} || true
 
     - name: Xray Scan
       run: |
